@@ -43,7 +43,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 /* SEARCH */
 .search-section{padding:14px 14px 6px}
 .search-box{position:relative}
-.search-input{width:100%;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:13px 42px 13px 44px;font-size:16px;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text);outline:none;transition:border-color .2s;letter-spacing:.5px}
+.search-input{width:100%;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:13px 58px 13px 44px;font-size:16px;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text);outline:none;transition:border-color .2s;letter-spacing:.5px}
 .search-input::placeholder{font-family:'Noto Sans KR',sans-serif;font-weight:400;font-size:13px;color:var(--text-dim);letter-spacing:0}
 .search-input:focus{border-color:var(--accent);background:#1a2236}
 .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:17px;pointer-events:none}
@@ -165,6 +165,61 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 /* TOAST */
 .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:500;padding:9px 16px;border-radius:9px;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* API KEY GATE — Script URL 설정 */
+.gate-overlay{position:fixed;inset:0;background:rgba(13,15,20,.97);z-index:500;display:none;align-items:center;justify-content:center;padding:24px}
+.gate-overlay.open{display:flex}
+.gate-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 22px;width:100%;max-width:400px}
+.gate-logo{font-size:32px;margin-bottom:4px;text-align:center}
+.gate-title{font-size:17px;font-weight:800;text-align:center;margin-bottom:4px}
+.gate-sub{font-size:12px;color:var(--text-dim);text-align:center;margin-bottom:22px;line-height:1.6}
+.gate-label{font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px}
+.gate-input{width:100%;background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:13px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none;word-break:break-all}
+.gate-input:focus{border-color:var(--accent)}
+.gate-hint{font-size:10px;color:var(--text-dim);margin-top:7px;line-height:1.6}
+.gate-btn{width:100%;margin-top:16px;padding:14px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s}
+.gate-btn:active{background:#2563eb;transform:scale(.98)}
+.gate-skip{width:100%;margin-top:8px;padding:11px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text-dim);font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer}
+
+/* CAMERA BUTTON in search */
+.cam-btn{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;width:36px;height:36px;color:var(--accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.cam-btn:active{background:var(--accent);color:#fff}
+.cam-btn.no-key{background:var(--border);border-color:var(--border);color:var(--text-dim)}
+
+/* CAMERA MODAL */
+.cam-overlay{position:fixed;inset:0;background:#000;z-index:400;display:none;flex-direction:column}
+.cam-overlay.open{display:flex}
+.cam-header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;background:rgba(0,0,0,.6);position:absolute;top:0;left:0;right:0;z-index:2}
+.cam-header-title{font-size:14px;font-weight:700;color:#fff}
+.cam-close{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#camVideo{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.cam-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:2px solid rgba(59,130,246,.8);border-radius:12px;width:80%;max-width:320px;height:120px;z-index:2;box-shadow:0 0 0 2000px rgba(0,0,0,.5)}
+.cam-guide-label{position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap}
+.cam-footer{position:absolute;bottom:0;left:0;right:0;padding:20px 20px 36px;background:rgba(0,0,0,.7);z-index:2;display:flex;flex-direction:column;gap:10px;align-items:center}
+.cam-shoot-btn{width:68px;height:68px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:28px;transition:all .1s;flex-shrink:0}
+.cam-shoot-btn:active{transform:scale(.9);background:#e2e8f0}
+.cam-upload-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:13px;padding:10px 20px;cursor:pointer}
+.cam-status{font-size:12px;color:rgba(255,255,255,.7);text-align:center;min-height:16px}
+#camCanvas{display:none}
+
+/* AI RESULT BADGE */
+.ai-result-bar{background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.ai-result-bar .ai-icon{font-size:18px;flex-shrink:0}
+.ai-result-bar .ai-text{font-size:12px;color:var(--text-mid);flex:1}
+.ai-result-bar .ai-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)}
+.ai-result-bar .ai-apply{background:var(--accent);border:none;border-radius:7px;padding:6px 12px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;flex-shrink:0}
+
+/* KEY STATUS dot in header */
+.key-dot{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;transition:background .3s}
+.key-dot.active{background:var(--green)}
+
+/* SYNC STATUS */
+.sync-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 14px;display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-dim)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .3s}
+.sync-dot.syncing{background:var(--yellow);animation:pulse .8s infinite}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .empty-state{padding:36px 18px;text-align:center;color:var(--text-dim);font-size:12px;line-height:1.8}
 .empty-state .big{font-size:30px;margin-bottom:7px}
 
@@ -178,7 +233,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <div class="header">
   <div class="header-top">
     <h1>📋 재물조사 체크 <span class="badge">2026</span></h1>
-    <span style="font-size:10px;color:var(--text-dim)">대외협력홍보실</span>
+    <button onclick="showKeySettings()" style="background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:4px 10px;font-size:10px;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:4px">⚙️ <span class="key-dot" id="keyDot"></span></button>
   </div>
   <div class="progress-wrap">
     <div class="progress-nums">
@@ -197,11 +252,18 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   </div>
 </div>
 
+<!-- SYNC STATUS BAR -->
+<div class="sync-bar" id="syncBar">
+  <div class="sync-dot" id="syncDot"></div>
+  <span id="syncMsg">Google Sheets 연결 안 됨 — 우측 상단 ⚙️ 버튼으로 URL 설정</span>
+</div>
+
 <!-- SEARCH -->
 <div class="search-section">
   <div class="search-box">
     <span class="search-icon">🔍</span>
     <input type="text" class="search-input" id="searchInput" placeholder="물품번호 입력 (예: 202100523-1)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button class="cam-btn" id="camBtn" onclick="openCamera()" title="사진으로 물품번호 인식">📷</button>
     <button class="search-clear" id="searchClear">✕</button>
   </div>
 </div>
@@ -245,6 +307,41 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <button class="export-btn secondary" onclick="showResetConfirm()">↺</button>
   <button class="export-btn secondary" onclick="openExtraModal(null)">＋ 실물추가</button>
   <button class="export-btn primary" onclick="exportXLSX()">📥 서식 내보내기</button>
+</div>
+
+<!-- SCRIPT URL GATE -->
+<div class="gate-overlay" id="gateOverlay">
+  <div class="gate-card">
+    <div class="gate-logo">🔗</div>
+    <div class="gate-title">Google Sheets 연동 설정</div>
+    <div class="gate-sub">Apps Script 배포 URL을 입력하면<br>모든 기기의 체크 결과가 실시간으로 공유됩니다</div>
+    <div class="gate-label">Apps Script 웹앱 URL</div>
+    <input type="text" class="gate-input" id="gateKeyInput" placeholder="https://script.google.com/macros/s/...">
+    <div class="gate-hint">
+      설정 방법은 관리자에게 문의하거나<br>README를 참고해주세요
+    </div>
+    <button class="gate-btn" onclick="saveApiKey()">저장하고 시작</button>
+    <button class="gate-skip" onclick="closeGate()">나중에 (오프라인으로 사용)</button>
+  </div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div class="cam-overlay" id="camOverlay">
+  <div class="cam-header">
+    <span class="cam-header-title">📷 물품번호 촬영</span>
+    <button class="cam-close" onclick="closeCamera()">✕</button>
+  </div>
+  <video id="camVideo" autoplay playsinline muted></video>
+  <div class="cam-guide"><span class="cam-guide-label">물품 바코드 또는 번호를 박스 안에 맞춰주세요</span></div>
+  <canvas id="camCanvas"></canvas>
+  <div class="cam-footer">
+    <div class="cam-status" id="camStatus">촬영 버튼을 눌러주세요</div>
+    <button class="cam-shoot-btn" id="camShootBtn" onclick="shootPhoto()">📷</button>
+    <label class="cam-upload-btn">
+      📁 갤러리에서 선택
+      <input type="file" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+    </label>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -383,12 +480,7 @@ function renderList() {
   }
 }
 
-function quickCheck(id, val) {
-  checks[id] = checks[id]===val ? undefined : val;
-  if(!checks[id]) delete checks[id];
-  save(); updateStats(); renderList();
-  if(lastFoundItem&&lastFoundItem.id===id) showResult(lastFoundItem);
-}
+
 
 function quickBc(id) {
   if(barcodeFlags[id]) { delete barcodeFlags[id]; save(); updateStats(); renderList(); showToast('바코드 재발행 해제'); return; }
@@ -404,13 +496,7 @@ function quickBc(id) {
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function confirmBarcode() {
-  const rcv = document.getElementById('m-bc-rcv').value||'우편함 또는 직접 수령';
-  const note = document.getElementById('m-bc-note').value||'';
-  barcodeFlags[modalItemId]={rcv,note}; save(); updateStats(); renderList();
-  closeModalDirect(); showToast('🏷 바코드 재발행 등록 완료');
-  if(lastFoundItem&&lastFoundItem.id===modalItemId) showResult(lastFoundItem);
-}
+
 
 function openExtraModal(id) {
   modalMode='extra'; modalItemId=id;
@@ -446,23 +532,7 @@ function openExtraModal(id) {
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function confirmExtra() {
-  const name = document.getElementById('m-ex-name').value.trim();
-  if(!name){showToast('⚠️ 물품명을 입력하세요');return;}
-  const bld = document.getElementById('m-ex-bld').value;
-  const room = document.getElementById('m-ex-room').value;
-  const locMap = {'대학본관대외협력홍보실':'4500-04030','스타센터홍보대사실':'3665-01080'};
-  extraItems.push({
-    name, model:document.getElementById('m-ex-model').value,
-    spec:document.getElementById('m-ex-spec').value,
-    qty:parseInt(document.getElementById('m-ex-qty').value)||1,
-    cond:document.getElementById('m-ex-cond').value,
-    building:bld, room, location:locMap[bld+room]||bld,
-    note:document.getElementById('m-ex-note').value
-  });
-  save(); updateStats(); renderList();
-  closeModalDirect(); showToast('＋ 실물 추가 등록 완료');
-}
+
 
 function openTransferModal(id) {
   const i = idMap[id];
@@ -476,17 +546,9 @@ function openTransferModal(id) {
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function confirmTransfer() {
-  const note = document.getElementById('m-tr-note').value||'';
-  transferFlags[modalItemId]={note}; save(); updateStats(); renderList();
-  closeModalDirect(); showToast('↔ 이관 물품 등록 완료');
-  if(lastFoundItem&&lastFoundItem.id===modalItemId) showResult(lastFoundItem);
-}
 
-function deleteExtra(idx) {
-  extraItems.splice(idx,1); save(); updateStats(); renderList();
-  showToast('삭제 완료');
-}
+
+
 
 // ───────────── RESULT CARD ─────────────
 function showResult(item) {
@@ -541,12 +603,7 @@ function showNotFound(q) {
   </div>`;
 }
 
-function setCheck(id, val) {
-  checks[id] = checks[id]===val ? undefined : val;
-  if(!checks[id]) delete checks[id];
-  save(); updateStats(); renderList();
-  if(lastFoundItem&&lastFoundItem.id===id) showResult(lastFoundItem);
-}
+
 
 function quickSearch(id) {
   const input=document.getElementById('searchInput');
@@ -676,9 +733,354 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2200);
 }
 
+// ───────────── SHEETS 연동 ─────────────
+let SCRIPT_URL = localStorage.getItem('script_url') || 'https://script.google.com/a/macros/jj.ac.kr/s/AKfycbx6GihlUuyZF24u2Um0rOOr9brJitNnBCC6ZMO1Llsmqb9hDLBjipwdVsBAAiQD11xJ/exec';
+let isSyncing = false;
+let pendingQueue = JSON.parse(localStorage.getItem('pendingQueue') || '[]');
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('syncDot');
+  const msgEl = document.getElementById('syncMsg');
+  dot.className = 'sync-dot ' + state;
+  msgEl.textContent = msg;
+}
+
+function updateKeyDot() {
+  const dot = document.getElementById('keyDot');
+  if(dot) dot.className = 'key-dot' + (SCRIPT_URL ? ' active' : '');
+  if(SCRIPT_URL) setSyncStatus('ok', 'Google Sheets 연결됨 — 실시간 동기화 중');
+  else setSyncStatus('err', 'Google Sheets 연결 안 됨 — ⚙️ 버튼으로 URL 설정');
+}
+
+function showKeySettings() {
+  document.getElementById('gateKeyInput').value = SCRIPT_URL;
+  document.getElementById('gateOverlay').classList.add('open');
+}
+
+async function saveApiKey() {
+  const val = document.getElementById('gateKeyInput').value.trim();
+  if(!val) { showToast('⚠️ URL을 입력해주세요'); return; }
+  if(!val.includes('script.google.com')) { showToast('⚠️ 올바른 Apps Script URL이 아닙니다'); return; }
+  SCRIPT_URL = val;
+  localStorage.setItem('script_url', SCRIPT_URL);
+  updateKeyDot();
+  closeGate();
+  showToast('🔗 연결 중...');
+  await loadFromSheets();
+}
+
+function closeGate() {
+  document.getElementById('gateOverlay').classList.remove('open');
+}
+
+// Sheets에서 전체 데이터 로드
+async function loadFromSheets() {
+  if(!SCRIPT_URL) return;
+  setSyncStatus('syncing', '데이터 불러오는 중...');
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getAll', {redirect:'follow'});
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+
+    // 서버 데이터로 로컬 상태 업데이트
+    Object.keys(checks).forEach(k => delete checks[k]);
+    Object.keys(barcodeFlags).forEach(k => delete barcodeFlags[k]);
+    Object.keys(transferFlags).forEach(k => delete transferFlags[k]);
+    Object.assign(checks, data.checks || {});
+    Object.assign(barcodeFlags, data.barcodeFlags || {});
+    Object.assign(transferFlags, data.transferFlags || {});
+
+    // 실물 추가 목록도 로드
+    const exRes = await fetch(SCRIPT_URL + '?action=getExtra', {redirect:'follow'});
+    const exData = await exRes.json();
+    extraItems.length = 0;
+    (exData.items || []).forEach(i => extraItems.push(i));
+
+    save();
+    updateStats();
+    renderList();
+    setSyncStatus('ok', '동기화 완료 — ' + new Date().toLocaleTimeString('ko-KR'));
+    showToast('✅ 데이터 불러오기 완료');
+
+    // 대기 중인 변경사항 있으면 전송
+    flushQueue();
+  } catch(e) {
+    setSyncStatus('err', '연결 실패 — 오프라인 모드로 작동 중');
+    showToast('⚠️ Sheets 연결 실패: ' + e.message);
+  }
+}
+
+// 변경사항을 Sheets에 전송
+async function pushToSheets(payload) {
+  if(!SCRIPT_URL) return;
+  pendingQueue.push(payload);
+  localStorage.setItem('pendingQueue', JSON.stringify(pendingQueue));
+  flushQueue();
+}
+
+async function flushQueue() {
+  if(!SCRIPT_URL || isSyncing || pendingQueue.length === 0) return;
+  isSyncing = true;
+  setSyncStatus('syncing', '저장 중...');
+
+  while(pendingQueue.length > 0) {
+    const item = pendingQueue[0];
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(item),
+        redirect: 'follow'
+      });
+      const data = await res.json();
+      if(data.error) throw new Error(data.error);
+      pendingQueue.shift();
+      localStorage.setItem('pendingQueue', JSON.stringify(pendingQueue));
+    } catch(e) {
+      setSyncStatus('err', '저장 실패 — 재시도 대기 중');
+      break;
+    }
+  }
+
+  isSyncing = false;
+  if(pendingQueue.length === 0) setSyncStatus('ok', '저장 완료 — ' + new Date().toLocaleTimeString('ko-KR'));
+}
+
+// ───────────── API KEY ─────────────
+// (Sheets URL이 API 키 역할)
+
+// ───────────── CAMERA ─────────────
+let camStream = null;
+// 카메라용 API 키 (별도 관리, 선택사항)
+let camApiKey = localStorage.getItem('cam_api_key') || '';
+
+function openCamera() {
+  if(!camApiKey) {
+    // 카메라 API 키 없으면 간단 입력 팝업
+    const key = prompt('카메라 인식용 Anthropic API 키 입력\n(console.anthropic.com 에서 발급)');
+    if(!key) return;
+    camApiKey = key.trim();
+    localStorage.setItem('cam_api_key', camApiKey);
+  }
+  document.getElementById('camOverlay').classList.add('open');
+  document.getElementById('camStatus').textContent = '카메라 시작 중...';
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720} } })
+    .then(stream => {
+      camStream = stream;
+      document.getElementById('camVideo').srcObject = stream;
+      document.getElementById('camStatus').textContent = '촬영 버튼을 눌러주세요';
+    })
+    .catch(() => {
+      document.getElementById('camStatus').textContent = '카메라 접근 실패 — 갤러리에서 선택하세요';
+    });
+}
+
+function closeCamera() {
+  document.getElementById('camOverlay').classList.remove('open');
+  if(camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+}
+
+function shootPhoto() {
+  const video = document.getElementById('camVideo');
+  const canvas = document.getElementById('camCanvas');
+  if(!video.srcObject) { showToast('카메라가 준비되지 않았습니다'); return; }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  analyzeImage(dataUrl);
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => analyzeImage(ev.target.result);
+  reader.readAsDataURL(file);
+}
+
+async function analyzeImage(dataUrl) {
+  const status = document.getElementById('camStatus');
+  const shootBtn = document.getElementById('camShootBtn');
+  status.textContent = '🤖 AI가 물품번호를 분석 중...';
+  shootBtn.disabled = true;
+  shootBtn.style.opacity = '0.5';
+
+  const base64 = dataUrl.split(',')[1];
+  const mediaType = dataUrl.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': camApiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-calls': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: `이 이미지에서 물품관리번호를 찾아주세요.
+물품관리번호는 "숫자-숫자" 형식입니다. 예: 202100523-2, 201800579-1
+바코드 스티커, 라벨, 또는 직접 적혀있는 번호를 찾아주세요.
+
+응답 형식 (JSON만, 다른 설명 없이):
+{"found": true, "numbers": ["202100523-2"], "confidence": "high"}
+또는
+{"found": false, "numbers": [], "confidence": "none"}` }
+          ]
+        }]
+      })
+    });
+
+    if(!res.ok) {
+      const err = await res.json();
+      if(res.status === 401) {
+        status.textContent = '❌ API 키 오류';
+        camApiKey = '';
+        localStorage.removeItem('cam_api_key');
+        showToast('API 키를 다시 입력해주세요');
+      } else {
+        status.textContent = '❌ API 오류: ' + (err.error?.message || res.status);
+      }
+      return;
+    }
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    let parsed;
+    try { parsed = JSON.parse(text.replace(/```json|```/g, '').trim()); }
+    catch { parsed = { found: false, numbers: [] }; }
+
+    if(parsed.found && parsed.numbers?.length > 0) {
+      status.textContent = `✅ ${parsed.numbers.length}개 발견`;
+      closeCamera();
+      showAIResult(parsed.numbers);
+    } else {
+      status.textContent = '❌ 번호를 찾지 못했습니다. 다시 촬영해보세요';
+    }
+  } catch(e) {
+    status.textContent = '❌ 네트워크 오류';
+  } finally {
+    shootBtn.disabled = false;
+    shootBtn.style.opacity = '1';
+  }
+}
+
+function showAIResult(numbers) {
+  const existing = document.getElementById('aiResultBar');
+  if(existing) existing.remove();
+  if(numbers.length === 1) {
+    document.getElementById('searchInput').value = numbers[0];
+    handleSearch(numbers[0]);
+    showToast('📷 ' + numbers[0] + ' 인식 완료');
+    return;
+  }
+  const bar = document.createElement('div');
+  bar.id = 'aiResultBar';
+  bar.style.cssText = 'padding:0 14px 8px;';
+  bar.innerHTML = `<div class="ai-result-bar" style="flex-direction:column;align-items:flex-start;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <span class="ai-icon">📷</span>
+      <span class="ai-text" style="font-weight:600">AI가 ${numbers.length}개 번호를 발견했습니다</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;width:100%">
+      ${numbers.map(n=>`<button onclick="selectAINum('${n}')" style="background:var(--surface);border:1px solid var(--accent);border-radius:7px;padding:6px 12px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer">${n}</button>`).join('')}
+    </div>
+  </div>`;
+  document.getElementById('resultSection').parentNode.insertBefore(bar, document.getElementById('resultSection'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function selectAINum(num) {
+  document.getElementById('searchInput').value = num;
+  handleSearch(num);
+  const bar = document.getElementById('aiResultBar');
+  if(bar) bar.remove();
+  showToast('📷 ' + num + ' 선택');
+}
+
+// ───────────── SHEETS 연동 setCheck 오버라이드 ─────────────
+const _origSetCheck = setCheck;
+function setCheck(id, val) {
+  checks[id] = checks[id]===val ? undefined : val;
+  if(!checks[id]) delete checks[id];
+  save(); updateStats(); renderList();
+  if(lastFoundItem&&lastFoundItem.id===id) showResult(lastFoundItem);
+  // Sheets 전송
+  pushToSheets({ action:'setCheck', id, status: checks[id]||'', updater: '사용자' });
+}
+
+const _origQuickCheck = quickCheck;
+function quickCheck(id, val) {
+  checks[id] = checks[id]===val ? undefined : val;
+  if(!checks[id]) delete checks[id];
+  save(); updateStats(); renderList();
+  if(lastFoundItem&&lastFoundItem.id===id) showResult(lastFoundItem);
+  pushToSheets({ action:'setCheck', id, status: checks[id]||'', updater: '사용자' });
+}
+
+function confirmBarcode() {
+  const rcv = document.getElementById('m-bc-rcv').value||'우편함 또는 직접 수령';
+  const note = document.getElementById('m-bc-note').value||'';
+  barcodeFlags[modalItemId]={rcv,note}; save(); updateStats(); renderList();
+  closeModalDirect(); showToast('🏷 바코드 재발행 등록 완료');
+  if(lastFoundItem&&lastFoundItem.id===modalItemId) showResult(lastFoundItem);
+  pushToSheets({ action:'setCheck', id: modalItemId, barcode: true, barcodeRcv: rcv, updater: '사용자' });
+}
+
+function confirmTransfer() {
+  const note = document.getElementById('m-tr-note').value||'';
+  transferFlags[modalItemId]={note}; save(); updateStats(); renderList();
+  closeModalDirect(); showToast('↔ 이관 물품 등록 완료');
+  if(lastFoundItem&&lastFoundItem.id===modalItemId) showResult(lastFoundItem);
+  pushToSheets({ action:'setCheck', id: modalItemId, transfer: true, transferNote: note, updater: '사용자' });
+}
+
+function confirmExtra() {
+  const name = document.getElementById('m-ex-name').value.trim();
+  if(!name){showToast('⚠️ 물품명을 입력하세요');return;}
+  const bld = document.getElementById('m-ex-bld').value;
+  const room = document.getElementById('m-ex-room').value;
+  const locMap = {'대학본관대외협력홍보실':'4500-04030','스타센터홍보대사실':'3665-01080'};
+  const item = {
+    name, model:document.getElementById('m-ex-model').value,
+    spec:document.getElementById('m-ex-spec').value,
+    qty:parseInt(document.getElementById('m-ex-qty').value)||1,
+    cond:document.getElementById('m-ex-cond').value,
+    building:bld, room, location:locMap[bld+room]||bld,
+    note:document.getElementById('m-ex-note').value
+  };
+  extraItems.push(item);
+  save(); updateStats(); renderList();
+  closeModalDirect(); showToast('＋ 실물 추가 등록 완료');
+  pushToSheets({ action:'addExtra', ...item, updater: '사용자' });
+}
+
+function deleteExtra(idx) {
+  const item = extraItems[idx];
+  extraItems.splice(idx,1); save(); updateStats(); renderList();
+  showToast('삭제 완료');
+  if(item) pushToSheets({ action:'delExtra', name: item.name, building: item.building, room: item.room });
+}
+
 // ───────────── INIT ─────────────
 updateStats();
 renderList();
+updateKeyDot();
+
+// Script URL 있으면 자동 로드, 없으면 설정 팝업
+// URL 이미 내장됨 — 바로 연결
+loadFromSheets();
+setInterval(loadFromSheets, 30000);
+// 사용자가 다른 URL로 바꾸고 싶을 때만 ⚙️ 버튼 사용
+
+// 오프라인→온라인 복구 시 큐 전송
+window.addEventListener('online', flushQueue);
 </script>
 </body>
 </html>
