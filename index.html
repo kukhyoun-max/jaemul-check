@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>재물조사 | 대외협력홍보실</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+:root {
+  --bg:#0d0f14;--surface:#161b24;--card:#1c2333;--border:#2a3548;
+  --accent:#3b82f6;--accent-dim:rgba(59,130,246,.12);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.12);
+  --yellow:#f59e0b;--yellow-dim:rgba(245,158,11,.12);
+  --orange:#f97316;--orange-dim:rgba(249,115,22,.12);
+  --purple:#a855f7;--purple-dim:rgba(168,85,247,.12);
+  --text:#e2e8f0;--text-dim:#64748b;--text-mid:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding-bottom:80px}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#1a2440,#0f1623);border-bottom:1px solid var(--border);padding:16px 16px 12px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.header h1{font-size:16px;font-weight:700;display:flex;align-items:center;gap:7px}
+.header h1 .badge{background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 13px}
+.progress-nums{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.progress-label{font-size:11px;color:var(--text-dim)}
+.progress-count{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+.progress-bar-bg{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .4s ease}
+.stat-row{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.stat-pill{font-size:10px;padding:3px 9px;border-radius:10px;font-weight:600;display:flex;align-items:center;gap:4px}
+.stat-pill.green{background:var(--green-dim);color:var(--green)}
+.stat-pill.red{background:var(--red-dim);color:var(--red)}
+.stat-pill.gray{background:rgba(100,116,139,.12);color:var(--text-dim)}
+.stat-pill.yellow{background:var(--yellow-dim);color:var(--yellow)}
+.stat-pill.orange{background:var(--orange-dim);color:var(--orange)}
+.stat-pill.purple{background:var(--purple-dim);color:var(--purple)}
+
+/* SEARCH */
+.search-section{padding:14px 14px 6px}
+.search-box{position:relative}
+.search-input{width:100%;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:13px 42px 13px 44px;font-size:16px;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text);outline:none;transition:border-color .2s;letter-spacing:.5px}
+.search-input::placeholder{font-family:'Noto Sans KR',sans-serif;font-weight:400;font-size:13px;color:var(--text-dim);letter-spacing:0}
+.search-input:focus{border-color:var(--accent);background:#1a2236}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:17px;pointer-events:none}
+.search-clear{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:var(--border);border:none;border-radius:50%;width:24px;height:24px;color:var(--text-mid);font-size:13px;cursor:pointer;display:none;align-items:center;justify-content:center}
+
+/* RESULT CARD */
+.result-section{padding:0 14px;margin-bottom:6px}
+.result-card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;animation:slideIn .18s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.result-card.found{border-color:var(--accent)}
+.result-card.not-found{border-color:var(--red)}
+.result-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.result-id{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent)}
+.result-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.result-tag.found{background:var(--accent-dim);color:var(--accent)}
+.result-tag.not-found{background:var(--red-dim);color:var(--red)}
+.result-name{font-size:14px;font-weight:700;padding:10px 14px 5px;line-height:1.4}
+.result-meta{padding:0 14px 10px;display:flex;flex-direction:column;gap:4px}
+.meta-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-mid)}
+.meta-label{background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:3px;font-size:10px;color:var(--text-dim);white-space:nowrap}
+
+/* CHECK BUTTONS — main */
+.check-section{padding:10px 14px 14px;border-top:1px solid var(--border)}
+.check-label{font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:500}
+.check-row{display:flex;gap:8px;margin-bottom:8px}
+.check-btn{flex:1;padding:12px 6px;border:2px solid transparent;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.check-btn.present{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.check-btn.present.active,.check-btn.present:active{background:var(--green);color:#fff}
+.check-btn.absent{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.check-btn.absent.active,.check-btn.absent:active{background:var(--red);color:#fff}
+.check-btn.barcode{background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow);flex:0 0 auto;padding:12px 14px;font-size:12px}
+.check-btn.barcode.active,.check-btn.barcode:active{background:var(--yellow);color:#fff}
+.check-btn.transfer{background:var(--orange-dim);border-color:var(--orange);color:var(--orange);font-size:12px}
+.check-btn.transfer.active,.check-btn.transfer:active{background:var(--orange);color:#fff}
+
+/* NOT FOUND */
+.nf-body{padding:18px 14px;text-align:center}
+.nf-body .nf-icon{font-size:32px;margin-bottom:7px}
+.nf-body p{font-size:12px;color:var(--text-dim);line-height:1.6}
+.nf-body strong{color:var(--red);font-family:'JetBrains Mono',monospace}
+.nf-add-btn{margin-top:12px;padding:10px 20px;background:var(--purple-dim);border:2px solid var(--purple);border-radius:10px;color:var(--purple);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.nf-add-btn:active{background:var(--purple);color:#fff}
+
+/* FILTER BAR */
+.filter-bar{padding:6px 14px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;padding:6px 11px;border-radius:20px;font-size:11px;font-weight:600;background:var(--surface);border:1px solid var(--border);color:var(--text-mid);cursor:pointer;transition:all .15s;flex-shrink:0}
+.filter-chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.filter-chip.f-absent.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.filter-chip.f-barcode.active{background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow)}
+.filter-chip.f-transfer.active{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+.filter-chip.f-unknown.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* LIST */
+.list-section{padding:0 14px}
+.list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px}
+.list-title{font-size:12px;font-weight:600;color:var(--text-mid)}
+.list-count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.list-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s}
+.list-item:active{transform:scale(.99)}
+.list-item.s-present{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.04)}
+.list-item.s-absent{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.04)}
+.list-item.s-barcode{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.04)}
+.list-item.s-transfer{border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.04)}
+.list-item.s-extra{border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.04)}
+.status-dot{width:9px;height:9px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .2s}
+.status-dot.present{background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+.status-dot.absent{background:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.2)}
+.status-dot.barcode{background:var(--yellow);box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+.status-dot.transfer{background:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,.2)}
+.status-dot.extra{background:var(--purple);box-shadow:0 0 0 3px rgba(168,85,247,.2)}
+.item-info{flex:1;min-width:0}
+.item-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);margin-bottom:2px}
+.item-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-room{font-size:10px;color:var(--text-dim);margin-top:2px}
+.item-mini-btns{display:flex;gap:5px;flex-shrink:0}
+.mini-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text-dim);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.mini-btn:active{transform:scale(.88)}
+.mini-btn.pa{background:var(--green);border-color:var(--green);color:#fff}
+.mini-btn.ab{background:var(--red);border-color:var(--red);color:#fff}
+.mini-btn.bc{background:var(--yellow);border-color:var(--yellow);color:#fff}
+
+/* EXTRA ITEMS LIST */
+.extra-section{padding:0 14px;margin-bottom:6px}
+.extra-header{font-size:11px;font-weight:600;color:var(--purple);margin-bottom:6px;padding:0 2px;display:flex;justify-content:space-between;align-items:center}
+.extra-item{background:var(--surface);border:1px solid rgba(168,85,247,.3);border-radius:9px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.extra-item-info{flex:1;min-width:0}
+.extra-item-name{font-size:12px;font-weight:500}
+.extra-item-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
+.del-btn{width:28px;height:28px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:var(--red-dim);color:var(--red);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.del-btn:active{background:var(--red);color:#fff}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 18px 30px;width:100%;max-width:480px;animation:modalIn .22s ease}
+@keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.modal-field{margin-bottom:12px}
+.modal-label{font-size:11px;color:var(--text-dim);margin-bottom:5px;font-weight:500}
+.modal-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;color:var(--text);outline:none}
+.modal-input:focus{border-color:var(--accent)}
+.modal-row{display:flex;gap:8px}
+.modal-btns{display:flex;gap:8px;margin-top:16px}
+.modal-btn{flex:1;padding:13px;border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.modal-btn.confirm{background:var(--accent);color:#fff}
+.modal-btn.confirm:active{background:#2563eb}
+.modal-btn.cancel{background:var(--border);color:var(--text-mid)}
+.modal-btn.cancel:active{background:#374151}
+
+/* EXPORT BAR */
+.export-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;z-index:100}
+.export-btn{flex:1;padding:12px;border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.export-btn.primary{background:var(--accent);color:#fff}
+.export-btn.primary:active{background:#2563eb;transform:scale(.98)}
+.export-btn.secondary{background:var(--card);border:1px solid var(--border);color:var(--text-mid);flex:0 0 auto;padding:12px 14px;font-size:12px}
+.export-btn.secondary:active{background:var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:500;padding:9px 16px;border-radius:9px;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty-state{padding:36px 18px;text-align:center;color:var(--text-dim);font-size:12px;line-height:1.8}
+.empty-state .big{font-size:30px;margin-bottom:7px}
+
+/* SECTION DIVIDER */
+.section-divider{padding:10px 14px 4px;font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <h1>📋 재물조사 체크 <span class="badge">2026</span></h1>
+    <span style="font-size:10px;color:var(--text-dim)">대외협력홍보실</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-nums">
+      <span class="progress-label">조사 진행률</span>
+      <span class="progress-count"><span id="doneCount" style="color:var(--green)">0</span><span style="color:var(--text-dim)"> / </span><span id="totalCount" style="color:var(--text-mid)">190</span></span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+    <div class="stat-row">
+      <div class="stat-pill green">✓ 유 <span id="s-present">0</span></div>
+      <div class="stat-pill red">✗ 무 <span id="s-absent">0</span></div>
+      <div class="stat-pill gray">⬡ 미확인 <span id="s-unchecked">190</span></div>
+      <div class="stat-pill yellow">🏷 바코드 <span id="s-barcode">0</span></div>
+      <div class="stat-pill orange">↔ 이관 <span id="s-transfer">0</span></div>
+      <div class="stat-pill purple">＋ 실물추가 <span id="s-extra">0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="물품번호 입력 (예: 202100523-1)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button class="search-clear" id="searchClear">✕</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="resultSection" class="result-section" style="display:none"></div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filterBar">
+  <div class="filter-chip active" data-filter="all">전체</div>
+  <div class="filter-chip" data-filter="unchecked">미확인</div>
+  <div class="filter-chip f-absent" data-filter="absent">무 ✗</div>
+  <div class="filter-chip f-barcode" data-filter="barcode">🏷 바코드재발행</div>
+  <div class="filter-chip f-transfer" data-filter="transfer">↔ 이관</div>
+  <div class="filter-chip f-unknown" data-filter="extra">＋ 실물추가</div>
+  <div class="filter-chip" data-filter="04030">홍보실 A</div>
+  <div class="filter-chip" data-filter="04040">홍보실 B</div>
+  <div class="filter-chip" data-filter="홍보대사실">홍보대사실</div>
+</div>
+
+<!-- EXTRA ITEMS -->
+<div id="extraSection" style="display:none">
+  <div class="section-divider">📦 실물 추가 목록 (서식 3번)</div>
+  <div class="extra-section">
+    <div id="extraList"></div>
+  </div>
+</div>
+
+<!-- MAIN LIST -->
+<div class="section-divider">물품 목록</div>
+<div class="list-section">
+  <div class="list-header">
+    <span class="list-title" id="listTitle">전체</span>
+    <span class="list-count" id="listCount">190개</span>
+  </div>
+  <div id="itemList"></div>
+</div>
+
+<!-- EXPORT BAR -->
+<div class="export-bar">
+  <button class="export-btn secondary" onclick="showResetConfirm()">↺</button>
+  <button class="export-btn secondary" onclick="openExtraModal(null)">＋ 실물추가</button>
+  <button class="export-btn primary" onclick="exportXLSX()">📥 서식 내보내기</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL: 추가 상세 (바코드/이관/실물추가) -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-title" id="modalTitle">상세 입력</div>
+    <div id="modalBody"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModalDirect()">취소</button>
+      <button class="modal-btn confirm" id="modalConfirm">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ───────────── DATA ─────────────
+const ITEMS = [{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"199501257-1","name":"테이블(회의용) (RC016RC590(코너))","spec":"RC016 1600*775*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200201243-1","name":"책장","spec":"800*440*780","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200201243-2","name":"책장","spec":"800*440*780","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200201243-3","name":"책장","spec":"800*440*780","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200201243-4","name":"책장","spec":"800*440*780","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200400220-18","name":"의자(회전,직원용) (CH2200)","spec":"625*600*985, 천","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200500093-1","name":"책장(5단, 상3단 유리) (SC0085W)","spec":"800*390*1860","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200500165-1","name":"의자(회전) (CH2200)","spec":"천의자, 625*600*985~1055","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200500165-41","name":"의자(회전) (CH2200)","spec":"천의자, 625*600*985~1055","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200700073-1","name":"책상 (ZDE018)","spec":"ZDE018, 1800*900*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200700090-1","name":"서랍(3단,이동) (DP0313)","spec":"DP0313, 420*560*570","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200900130-1","name":"멀티비전시스템","spec":"46인치x9,17인치x7","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200900454-11","name":"의자(고정,CH3780SM)","spec":"CH3780SM 590*510*880","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200900454-17","name":"의자(고정,CH3780SM)","spec":"CH3780SM 590*510*880","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200900454-22","name":"의자(고정,CH3780SM)","spec":"CH3780SM 590*510*880","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"200900454-25","name":"의자(고정,CH3780SM)","spec":"CH3780SM 590*510*880","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201000744-2","name":"TV(LCD,52인치) (LN52C530F1F)","spec":"삼성전자 LN52C530F1F","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201000830-70","name":"의자(업무용) (CH4100A)","spec":"CH4100A 660*560*1015-1095","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100120-21","name":"책상(DB1161)","spec":"1600×750×720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100346-1","name":"캐비넷(2단,CAC082D)","spec":"800×414×797","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100354-1","name":"테이블(U형익스텐션) (DDS912F)","spec":"600×1200×720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100355-1","name":"서랍(3단,DPS0313)","spec":"400×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100355-2","name":"서랍(3단,DPS0313)","spec":"400×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100355-3","name":"서랍(3단,DPS0313)","spec":"400×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100404-2","name":"모니터(21.5인치)","spec":"21.5인치 LED LCD","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100636-12","name":"책상(DDS018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100636-13","name":"책상(DDS018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100636-14","name":"책상(DDS018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100636-15","name":"책상(DDS018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100750-2","name":"책상(DDS012)","spec":"1200*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100755-8","name":"캐비넷(3단도어,CAC083D)","spec":"800*414*1161","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100755-9","name":"캐비넷(3단도어,CAC083D)","spec":"800*414*1161","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100758-3","name":"의자(회전형) (CH4100A)","spec":"660*560~615*1015~1095","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201100758-4","name":"의자(회전형) (CH4100A)","spec":"660*560~615*1015~1095","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200067-1","name":"캐비넷(5단 전도어,CAC085D)","spec":"800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200068-1","name":"캐비넷(5단 오픈,CAC085)","spec":"800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200068-2","name":"캐비넷(5단 오픈,CAC085)","spec":"800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200375-2","name":"의자(CH2800AH)","spec":"620×620×1150~1210","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200554-1","name":"캐비넷 (DCS162)","spec":"600×500×720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200555-1","name":"책상 (DDT016)","spec":"1600×800×720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201200557-1","name":"서랍(3단) (DPS0313)","spec":"400×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300138-2","name":"파티션 (JFS0082S)","spec":"800×60×1160","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300150-9","name":"선풍기","spec":"일반형","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300503-1","name":"캐비넷(3단) (CAC083D)","spec":"CAC083D,800*414*1164","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300503-3","name":"캐비넷(3단) (CAC083D)","spec":"CAC083D,800*414*1164","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300650-8","name":"캐비넷(5단)","spec":"CAC085D,800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300650-9","name":"캐비넷(5단)","spec":"CAC085D,800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300650-10","name":"캐비넷(5단)","spec":"CAC085D,800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300650-11","name":"캐비넷(5단)","spec":"CAC085D,800×414×1889","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300651-23","name":"의자 (CH4100AH)","spec":"CH4100AH,660×560~615×1165~1240","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300654-1","name":"테이블(회의용)","spec":"CR624,2400×1200×720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300655-7","name":"의자","spec":"CH0012,490×550×790","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201300655-9","name":"의자","spec":"CH0012,490×550×790","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201500152-1","name":"워크스테이션 (DELL T5810)","spec":"DELL T5810","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201500915-1","name":"아이패드(iPad Air2 Wi-Fi 64GB)","spec":"17X24X0.61cm/64GB/2GB","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201500971-1","name":"컴퓨터(워크스테이션)(DELL T5810)","spec":"Xeon E5/8GB/SSD 256GB+1TB","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201500971-2","name":"컴퓨터(워크스테이션)(DELL T5810)","spec":"Xeon E5/8GB/SSD 256GB+1TB","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201500979-1","name":"의자(사무용)(CH4100AH)","spec":"660×560~615×1120~1200","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201501045-21","name":"이동식 서랍(DPS0313)","spec":"405×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201501045-23","name":"이동식 서랍(DPS0313)","spec":"405×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201501045-26","name":"이동식 서랍(DPS0313)","spec":"405×560×555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201501103-3","name":"의자(사무용)(CH4100AH)","spec":"660×560~615×1120~1200","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201600949-1","name":"카메라 (Alpha A7 II)","spec":"알파 A7 II","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700088-1","name":"카메라 렌즈(FE 50mm F1.8)","spec":"SONY 알파 FE 50mm F1.8","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700091-1","name":"짐벌(FY-G5)","spec":"85*79*246","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700468-1","name":"네트웍저장장치 (DS416PLAY)","spec":"NAS Synology 416play","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700469-1","name":"외장하드 (HDD Seagate 6TB)","spec":"HDD Seagate 6TB","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700469-2","name":"외장하드 (HDD Seagate 6TB)","spec":"HDD Seagate 6TB","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700489-1","name":"대형복합기 SL-X4300LX","spec":"대형, 30매/30매","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700502-1","name":"일반형 데스크(DDT018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700502-2","name":"일반형 데스크(DDT018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700502-4","name":"일반형 데스크(DDT018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201700502-5","name":"일반형 데스크(DDT018)","spec":"1800*800*720","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800008-1","name":"복합기(삼성 SL-X4300LX)","spec":"삼성전자 SL-X4300LX 컬러","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800015-1","name":"일반용 의자(해드有) CH4100AH","spec":"660x560~615x1165~1240","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800015-2","name":"일반용 의자(해드有) CH4100AH","spec":"660x560~615x1165~1240","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800530-1","name":"3단서랍(DPS0313)","spec":"400x560x555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800530-2","name":"3단서랍(DPS0313)","spec":"400x560x555","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800533-3","name":"양면 파티션(KFS082)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800533-4","name":"양면 파티션(KFS082)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800533-5","name":"양면 파티션(KFS082)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800533-6","name":"양면 파티션(KFS082)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800533-7","name":"양면 파티션(KFS082)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800533-8","name":"양면 파티션(KFS082)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800534-1","name":"일면외장 파티션(KFS082A)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800534-2","name":"일면외장 파티션(KFS082A)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800534-3","name":"일면외장 파티션(KFS082A)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800534-4","name":"일면외장 파티션(KFS082A)","spec":"800x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800535-1","name":"양면 파티션(KFS102)","spec":"1000x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800535-2","name":"양면 파티션(KFS102)","spec":"1000x66x1165","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800579-1","name":"드론(DJI 매빅 2 Pro)","spec":"20MP1 CMOS 센서","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201800832-9","name":"모니터(LS27F354FHKXKR)","spec":"27인치, 평면","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201801015-1","name":"카메라(EOS 6D Mark II)","spec":"DSLR, 2620만화소, 렌즈포함","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201900189-521","name":"선풍기","spec":"","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201900189-523","name":"선풍기","spec":"","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201900258-1","name":"짐벌 (오즈모 포)","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201900258-2","name":"짐벌 (오즈모 포)","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201901044-1","name":"카메라 (EOS 6D MARK II)","spec":"EOS 6D MARK II","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"201901044-2","name":"카메라 (EOS 6D MARK II)","spec":"EOS 6D MARK II","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000071-1","name":"카메라 (알파A6500)","spec":"알파A6500 상당품","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000072-1","name":"카메라 렌즈 (FE-24-70mm F2.6)","spec":"알파 FE-24-70mm F2.6","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000073-1","name":"짐벌 (DJI로닌 SC프로)","spec":"DJI로닌 SC프로콤보","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000074-1","name":"제습함 (ADH-EL 58L)","spec":"호루스벤누 ADH-EL 58L","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000208-1","name":"외장하드 (MU-PA1T0B/WW)","spec":"MU-PA1T0B/WW 상당품","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000209-1","name":"문서세단기 (PK-1630CD)","spec":"PK-1630CD 상당품","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000285-1","name":"조립컴퓨터","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000285-2","name":"조립컴퓨터","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000285-3","name":"조립컴퓨터","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000287-1","name":"카메라렌즈 (SEL35F18)","spec":"SEL35F18 상당품","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000340-26","name":"캐비닛 (CAC085)","spec":"CAC085","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000375-1","name":"조립컴퓨터","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202000827-159","name":"모니터 (LC27R500FHKXKR)","spec":"LC27R500FHKXKR","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202100523-1","name":"모니터 (LF24T452FQKXKR)","spec":"LF24T452FQKXKR","price":0,"user":"김아연"},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202100523-2","name":"모니터 (LF24T452FQKXKR)","spec":"LF24T452FQKXKR","price":0,"user":"황국현"},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202100524-1","name":"조립컴퓨터","spec":"물품규격서 참조","price":0,"user":"황국현"},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202100548-1","name":"캠코더(인스타360 ONE X2)","spec":"인스타360 ONE X2","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202200156-2","name":"컴퓨터 (DB400SDA-Y52/C)","spec":"DB400SDA-Y52/C","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202300634-1","name":"조립 컴퓨터","spec":"물품규격서 참조","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202300635-1","name":"모니터 (LG 울트라와이드)","spec":"LG 울트라와이드 34WN780","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202300635-2","name":"모니터 (LG 울트라와이드)","spec":"LG 울트라와이드 34WN780","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202300815-6","name":"고프로 (고프로12히어로)","spec":"고프로12히어로크리에이터에디션","price":0,"user":"황국현"},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202400535-3","name":"모니터 (LS27C312EAKXKR)","spec":"LS27C312EAKXKR","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202400535-4","name":"모니터 (LS27C312EAKXKR)","spec":"LS27C312EAKXKR","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202400562-1","name":"냉장고 (HRF-420SMHY)","spec":"HRF-420SMHY","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202400810-2","name":"무선마이크 (로데 Wireless PRO)","spec":"로데 Wireless PRO","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202400810-3","name":"무선마이크 (로데 Wireless PRO)","spec":"로데 Wireless PRO","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202401114-25","name":"데스크탑 (DM501TGA-U02/C)","spec":"DM501TGA-U02/C","price":0,"user":""},{"location":"4500-04030","building":"대학본관","room":"대외협력홍보실","id":"202401116-32","name":"모니터 (LS27C310EAKXKR)","spec":"LS27C310EAKXKR","price":0,"user":""},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202300811-2","name":"컴퓨터 (MAC Pro 본체)","spec":"MAC Pro(본체)","price":0,"user":""},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202300812-2","name":"모니터 (Apple Studio Display)","spec":"Apple Studio Display","price":0,"user":""},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202400669-2","name":"조립식 PC (데스크탑)","spec":"데스크탑","price":0,"user":""},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202400925-1","name":"노트북 (16Z90TS-GS5HK)","spec":"16Z90TS-GS5HK","price":0,"user":""},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202500189-1","name":"렌즈 (SEL2070G)","spec":"SEL2070G","price":0,"user":"황국현"},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202500189-2","name":"렌즈 (SEL2070G)","spec":"SEL2070G","price":0,"user":"황국현"},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202500205-1","name":"SONY 알파 A7C 2(블랙)","spec":"A7CM2","price":0,"user":"황국현"},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202500205-2","name":"SONY 알파 A7C 2(블랙)","spec":"A7CM2","price":0,"user":"황국현"},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202500205-3","name":"SONY 알파 A7C 2(블랙)","spec":"A7CM2","price":0,"user":"황국현"},{"location":"4500-04040","building":"대학본관","room":"대외협력홍보실","id":"202500206-1","name":"EX600U Bag SET","spec":"EX600U Bag SET","price":0,"user":"황국현"},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"201000567-16","name":"앰프(EMX212S)","spec":"마이크(GP700)포함","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"201100233-45","name":"전자교탁(모니터포함) (JPM-CONSOLE S)","spec":"19인치LCD모니터포함","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"201200127-20","name":"컴퓨터(DB-Z400,본체)","spec":"i3 2120/4GB/500GB","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"201300627-2","name":"프로젝터 (Sony VPL-FX30)","spec":"Sony VPL-FX30","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"201500294-81","name":"컴퓨터(삼성 DB400S3A-C11/C)","spec":"코어 i3-4150/HDD 500G","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"201800492-22","name":"유선 마이크(전자교탁용) (NM-950)","spec":"NM-950","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100115-1","name":"전동스크린 (크로마키)","spec":"크로마키 6000x4000","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100115-2","name":"전동스크린 (크로마키)","spec":"크로마키 6000x4000","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-1","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-2","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-3","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-4","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-5","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-6","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-7","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-8","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-9","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-10","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-11","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-12","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-13","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-14","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-15","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-16","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-17","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-18","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-19","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-20","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-21","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-22","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-23","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100117-24","name":"바퀴형 의자 (CH0015WAF)","spec":"CH0015WAF","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100118-1","name":"회의 테이블 (CCR120A)","spec":"CCR120A","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100118-2","name":"회의 테이블 (CCR120A)","spec":"CCR120A","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100119-1","name":"6인용 락커장 (WAC523M)","spec":"WAC523M","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100119-2","name":"6인용 락커장 (WAC523M)","spec":"WAC523M","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100120-1","name":"3인용 락커장 (WAC513M)","spec":"WAC513M","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100121-1","name":"테이블 (CDR071)","spec":"CDR071","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100121-2","name":"테이블 (CDR071)","spec":"CDR071","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100122-1","name":"덕트형 데스크 (FDD014MNN)","spec":"FDD014MNN","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100122-2","name":"덕트형 데스크 (FDD014MNN)","spec":"FDD014MNN","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100122-3","name":"덕트형 데스크 (FDD014MNN)","spec":"FDD014MNN","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100122-4","name":"덕트형 데스크 (FDD014MNN)","spec":"FDD014MNN","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100123-1","name":"덕트형 데스크 (FDD012MNN)","spec":"FDD012MNN","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100123-2","name":"덕트형 데스크 (FDD012MNN)","spec":"FDD012MNN","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100136-1","name":"삼각대 (TCK9K7)","spec":"TCK9K7","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100136-2","name":"삼각대 (TCK9K7)","spec":"TCK9K7","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100136-3","name":"삼각대 (TCK9K7)","spec":"TCK9K7","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100137-1","name":"보관함 (ADH-F130)","spec":"ADH-F130","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100138-1","name":"플래시 (470EX-AI)","spec":"470EX-AI","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100258-1","name":"제습기 (DQ160PBBC)","spec":"DQ160PBBC","price":0,"user":""},{"location":"3665-01080","building":"스타센터","room":"홍보대사실","id":"202100560-1","name":"조명 (SL200W II LED)","spec":"SL200W II LED","price":0,"user":""}];
+
+// ───────────── STATE ─────────────
+// checks[id] = 'present'|'absent'|'barcode'|'transfer' (기본 상태)
+// barcodeFlags[id] = true (바코드 재발행 추가 마킹)
+// transferFlags[id] = true (이관 추가 마킹)
+// extraItems = [{name,spec,qty,note,building,room,location}]
+
+const checks = JSON.parse(localStorage.getItem('ck2026') || '{}');
+const barcodeFlags = JSON.parse(localStorage.getItem('bc2026') || '{}');
+const transferFlags = JSON.parse(localStorage.getItem('tr2026') || '{}');
+let extraItems = JSON.parse(localStorage.getItem('ex2026') || '[]');
+let currentFilter = 'all';
+let lastFoundItem = null;
+let modalMode = null; // 'barcode'|'transfer'|'extra'
+let modalItemId = null;
+
+const idMap = {};
+ITEMS.forEach(i => { idMap[i.id] = i; });
+
+function save() {
+  localStorage.setItem('ck2026', JSON.stringify(checks));
+  localStorage.setItem('bc2026', JSON.stringify(barcodeFlags));
+  localStorage.setItem('tr2026', JSON.stringify(transferFlags));
+  localStorage.setItem('ex2026', JSON.stringify(extraItems));
+}
+
+// ───────────── STATS ─────────────
+function updateStats() {
+  let present=0, absent=0, barcode=0, transfer=0;
+  ITEMS.forEach(i => {
+    const s = checks[i.id];
+    if(s==='present') present++;
+    else if(s==='absent') absent++;
+    if(barcodeFlags[i.id]) barcode++;
+    if(transferFlags[i.id]) transfer++;
+  });
+  const done = present+absent;
+  const total = ITEMS.length;
+  document.getElementById('doneCount').textContent = done;
+  document.getElementById('progressBar').style.width = (total?done/total*100:0).toFixed(1)+'%';
+  document.getElementById('s-present').textContent = present;
+  document.getElementById('s-absent').textContent = absent;
+  document.getElementById('s-unchecked').textContent = total-done;
+  document.getElementById('s-barcode').textContent = barcode;
+  document.getElementById('s-transfer').textContent = transfer;
+  document.getElementById('s-extra').textContent = extraItems.length;
+}
+
+// ───────────── FILTER LIST ─────────────
+function getFiltered() {
+  return ITEMS.filter(i => {
+    if(currentFilter==='all') return true;
+    if(currentFilter==='unchecked') return !checks[i.id];
+    if(currentFilter==='absent') return checks[i.id]==='absent';
+    if(currentFilter==='barcode') return !!barcodeFlags[i.id];
+    if(currentFilter==='transfer') return !!transferFlags[i.id];
+    if(currentFilter==='extra') return false;
+    if(currentFilter==='04030') return i.location==='4500-04030';
+    if(currentFilter==='04040') return i.location==='4500-04040';
+    if(currentFilter==='홍보대사실') return i.building==='스타센터';
+    return true;
+  });
+}
+
+function renderList() {
+  const items = getFiltered();
+  document.getElementById('listCount').textContent = items.length+'개';
+  const f = currentFilter;
+  const titles = {all:'전체',unchecked:'미확인',absent:'무(없음)',barcode:'바코드 재발행',transfer:'이관 물품',extra:'실물 추가',
+    '04030':'홍보실 A(04030)','04040':'홍보실 B(04040)','홍보대사실':'홍보대사실'};
+  document.getElementById('listTitle').textContent = titles[f]||f;
+
+  const el = document.getElementById('itemList');
+  if(items.length===0 && currentFilter!=='extra') {
+    el.innerHTML='<div class="empty-state"><div class="big">📭</div>해당 조건의 물품이 없습니다.</div>';
+    return;
+  }
+
+  el.innerHTML = items.map(i => {
+    const s = checks[i.id];
+    const isBc = barcodeFlags[i.id];
+    const isTr = transferFlags[i.id];
+    const dotClass = s==='present'?'present':s==='absent'?'absent':isBc?'barcode':isTr?'transfer':'';
+    const cardClass = s==='present'?'s-present':s==='absent'?'s-absent':isBc?'s-barcode':isTr?'s-transfer':'';
+    const roomLabel = i.building==='스타센터'?'스타센터 · 홍보대사실':i.building+' · '+i.location;
+    return `<div class="list-item ${cardClass}" onclick="quickSearch('${i.id}')">
+      <div class="status-dot ${dotClass}"></div>
+      <div class="item-info">
+        <div class="item-id">${i.id}</div>
+        <div class="item-name">${i.name}</div>
+        <div class="item-room">${roomLabel}</div>
+      </div>
+      <div class="item-mini-btns">
+        <button class="mini-btn ${s==='present'?'pa':''}" onclick="event.stopPropagation();quickCheck('${i.id}','present')">✓</button>
+        <button class="mini-btn ${s==='absent'?'ab':''}" onclick="event.stopPropagation();quickCheck('${i.id}','absent')">✗</button>
+        <button class="mini-btn ${isBc?'bc':''}" onclick="event.stopPropagation();quickBc('${i.id}')" title="바코드재발행">🏷</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // extra items display
+  const exSec = document.getElementById('extraSection');
+  if(extraItems.length>0 || currentFilter==='extra') {
+    exSec.style.display='block';
+    document.getElementById('extraList').innerHTML = extraItems.length===0
+      ? '<div class="empty-state" style="padding:16px"><div class="big">📭</div>추가된 실물 없음</div>'
+      : extraItems.map((e,idx)=>`<div class="extra-item">
+          <div class="status-dot extra"></div>
+          <div class="extra-item-info">
+            <div class="extra-item-name">${e.name}</div>
+            <div class="extra-item-sub">${e.building} · ${e.room} | 수량: ${e.qty} | ${e.spec||''}</div>
+          </div>
+          <button class="del-btn" onclick="deleteExtra(${idx})">✕</button>
+        </div>`).join('');
+  } else {
+    exSec.style.display='none';
+  }
+}
+
+function quickCheck(id, val) {
+  checks[id] = checks[id]===val ? undefined : val;
+  if(!checks[id]) delete checks[id];
+  save(); updateStats(); renderList();
+  if(lastFoundItem&&lastFoundItem.id===id) showResult(lastFoundItem);
+}
+
+function quickBc(id) {
+  if(barcodeFlags[id]) { delete barcodeFlags[id]; save(); updateStats(); renderList(); showToast('바코드 재발행 해제'); return; }
+  modalMode='barcode'; modalItemId=id;
+  const i=idMap[id];
+  document.getElementById('modalTitle').textContent='🏷 바코드 재발행 등록';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-field"><div class="modal-label">물품번호</div><input class="modal-input" value="${i.id}" disabled></div>
+    <div class="modal-field"><div class="modal-label">물품명</div><input class="modal-input" value="${i.name}" disabled></div>
+    <div class="modal-field"><div class="modal-label">바코드 수령 방법</div><input class="modal-input" id="m-bc-rcv" placeholder="우편함 또는 직접 수령"></div>
+    <div class="modal-field"><div class="modal-label">비고</div><input class="modal-input" id="m-bc-note" placeholder="비고 사항"></div>`;
+  document.getElementById('modalConfirm').onclick = confirmBarcode;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function confirmBarcode() {
+  const rcv = document.getElementById('m-bc-rcv').value||'우편함 또는 직접 수령';
+  const note = document.getElementById('m-bc-note').value||'';
+  barcodeFlags[modalItemId]={rcv,note}; save(); updateStats(); renderList();
+  closeModalDirect(); showToast('🏷 바코드 재발행 등록 완료');
+  if(lastFoundItem&&lastFoundItem.id===modalItemId) showResult(lastFoundItem);
+}
+
+function openExtraModal(id) {
+  modalMode='extra'; modalItemId=id;
+  document.getElementById('modalTitle').textContent='＋ 실물 추가 등록 (서식 3번)';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-field"><div class="modal-label">물품명 *</div><input class="modal-input" id="m-ex-name" placeholder="예: 강연대"></div>
+    <div class="modal-row">
+      <div class="modal-field" style="flex:1"><div class="modal-label">모델명</div><input class="modal-input" id="m-ex-model" placeholder="모델명"></div>
+      <div class="modal-field" style="flex:1"><div class="modal-label">규격</div><input class="modal-input" id="m-ex-spec" placeholder="예: 590*660*1100"></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field" style="flex:1"><div class="modal-label">수량</div><input class="modal-input" id="m-ex-qty" type="number" value="1" min="1"></div>
+      <div class="modal-field" style="flex:1"><div class="modal-label">상태</div>
+        <select class="modal-input" id="m-ex-cond"><option value="상">상</option><option value="중" selected>중</option><option value="하">하</option></select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field" style="flex:1"><div class="modal-label">건물명</div>
+        <select class="modal-input" id="m-ex-bld">
+          <option value="대학본관">대학본관</option>
+          <option value="스타센터">스타센터</option>
+        </select>
+      </div>
+      <div class="modal-field" style="flex:1"><div class="modal-label">호실</div>
+        <select class="modal-input" id="m-ex-room">
+          <option value="대외협력홍보실">대외협력홍보실</option>
+          <option value="홍보대사실">홍보대사실</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field"><div class="modal-label">비고</div><input class="modal-input" id="m-ex-note" placeholder="비고 사항"></div>`;
+  document.getElementById('modalConfirm').onclick = confirmExtra;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function confirmExtra() {
+  const name = document.getElementById('m-ex-name').value.trim();
+  if(!name){showToast('⚠️ 물품명을 입력하세요');return;}
+  const bld = document.getElementById('m-ex-bld').value;
+  const room = document.getElementById('m-ex-room').value;
+  const locMap = {'대학본관대외협력홍보실':'4500-04030','스타센터홍보대사실':'3665-01080'};
+  extraItems.push({
+    name, model:document.getElementById('m-ex-model').value,
+    spec:document.getElementById('m-ex-spec').value,
+    qty:parseInt(document.getElementById('m-ex-qty').value)||1,
+    cond:document.getElementById('m-ex-cond').value,
+    building:bld, room, location:locMap[bld+room]||bld,
+    note:document.getElementById('m-ex-note').value
+  });
+  save(); updateStats(); renderList();
+  closeModalDirect(); showToast('＋ 실물 추가 등록 완료');
+}
+
+function openTransferModal(id) {
+  const i = idMap[id];
+  modalMode='transfer'; modalItemId=id;
+  document.getElementById('modalTitle').textContent='↔ 이관 물품 등록 (서식 4번)';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-field"><div class="modal-label">물품번호</div><input class="modal-input" value="${i.id}" disabled></div>
+    <div class="modal-field"><div class="modal-label">물품명</div><input class="modal-input" value="${i.name}" disabled></div>
+    <div class="modal-field"><div class="modal-label">비고 (이관 경위 등)</div><input class="modal-input" id="m-tr-note" placeholder="예: 타 부서에서 이동하여 현재 사용중"></div>`;
+  document.getElementById('modalConfirm').onclick = confirmTransfer;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function confirmTransfer() {
+  const note = document.getElementById('m-tr-note').value||'';
+  transferFlags[modalItemId]={note}; save(); updateStats(); renderList();
+  closeModalDirect(); showToast('↔ 이관 물품 등록 완료');
+  if(lastFoundItem&&lastFoundItem.id===modalItemId) showResult(lastFoundItem);
+}
+
+function deleteExtra(idx) {
+  extraItems.splice(idx,1); save(); updateStats(); renderList();
+  showToast('삭제 완료');
+}
+
+// ───────────── RESULT CARD ─────────────
+function showResult(item) {
+  lastFoundItem = item;
+  const s = checks[item.id];
+  const isBc = barcodeFlags[item.id];
+  const isTr = transferFlags[item.id];
+  const sec = document.getElementById('resultSection');
+  sec.style.display='block';
+  const roomLabel = item.building==='스타센터'?'스타센터 · 홍보대사실':item.building+' · '+item.room+' ('+item.location+')';
+  sec.innerHTML=`<div class="result-card found">
+    <div class="result-header">
+      <div class="result-id">${item.id}</div>
+      <div class="result-tag found">목록에 있음 ✓</div>
+    </div>
+    <div class="result-name">${item.name}</div>
+    <div class="result-meta">
+      <div class="meta-row"><span class="meta-label">위치</span>${roomLabel}</div>
+      ${item.spec?`<div class="meta-row"><span class="meta-label">규격</span>${item.spec}</div>`:''}
+      ${item.user&&item.user!=='nan'?`<div class="meta-row"><span class="meta-label">사용자</span>${item.user}</div>`:''}
+      ${isBc?`<div class="meta-row"><span class="meta-label" style="background:var(--yellow-dim);color:var(--yellow);border-color:var(--yellow)">바코드재발행</span>수령방법: ${isBc.rcv||'-'}</div>`:''}
+      ${isTr?`<div class="meta-row"><span class="meta-label" style="background:var(--orange-dim);color:var(--orange);border-color:var(--orange)">이관</span>${isTr.note||'-'}</div>`:''}
+    </div>
+    <div class="check-section">
+      <div class="check-label">현황 체크</div>
+      <div class="check-row">
+        <button class="check-btn present ${s==='present'?'active':''}" onclick="setCheck('${item.id}','present')">✅ 유 (있음)</button>
+        <button class="check-btn absent ${s==='absent'?'active':''}" onclick="setCheck('${item.id}','absent')">❌ 무 (없음)</button>
+      </div>
+      <div class="check-row">
+        <button class="check-btn barcode ${isBc?'active':''}" onclick="quickBc('${item.id}')">🏷 바코드 재발행</button>
+        <button class="check-btn transfer ${isTr?'active':''}" onclick="openTransferModal('${item.id}')">↔ 이관 물품</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showNotFound(q) {
+  lastFoundItem=null;
+  const sec=document.getElementById('resultSection');
+  sec.style.display='block';
+  sec.innerHTML=`<div class="result-card not-found">
+    <div class="result-header">
+      <div class="result-id">${q}</div>
+      <div class="result-tag not-found">목록에 없음</div>
+    </div>
+    <div class="nf-body">
+      <div class="nf-icon">🔍</div>
+      <p><strong>${q}</strong><br>목록에 없는 물품번호입니다.<br>실물만 있는 경우 아래 버튼으로 추가하세요.</p>
+      <button class="nf-add-btn" onclick="openExtraModal('${q}')">＋ 실물 추가 등록 (서식 3번)</button>
+    </div>
+  </div>`;
+}
+
+function setCheck(id, val) {
+  checks[id] = checks[id]===val ? undefined : val;
+  if(!checks[id]) delete checks[id];
+  save(); updateStats(); renderList();
+  if(lastFoundItem&&lastFoundItem.id===id) showResult(lastFoundItem);
+}
+
+function quickSearch(id) {
+  const input=document.getElementById('searchInput');
+  input.value=id;
+  handleSearch(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function handleSearch(q) {
+  q = q.trim();
+  document.getElementById('searchClear').style.display = q?'flex':'none';
+  if(!q){document.getElementById('resultSection').style.display='none';lastFoundItem=null;return;}
+  let item = idMap[q];
+  if(!item) item=ITEMS.find(i=>i.id.toLowerCase().includes(q.toLowerCase())||i.name.toLowerCase().includes(q.toLowerCase()));
+  if(item) showResult(item);
+  else showNotFound(q);
+}
+
+// ───────────── MODAL ─────────────
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');}
+
+// ───────────── FILTER ─────────────
+document.querySelectorAll('.filter-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter=chip.dataset.filter;
+    renderList();
+  });
+});
+
+// ───────────── SEARCH ─────────────
+const input=document.getElementById('searchInput');
+input.addEventListener('input',()=>handleSearch(input.value));
+input.addEventListener('keydown',e=>{if(e.key==='Enter')input.blur();});
+document.getElementById('searchClear').addEventListener('click',()=>{input.value='';handleSearch('');input.focus();});
+
+// ───────────── RESET ─────────────
+function showResetConfirm(){if(confirm('모든 체크 데이터를 초기화하시겠습니까?'))resetAll();}
+function resetAll(){
+  Object.keys(checks).forEach(k=>delete checks[k]);
+  Object.keys(barcodeFlags).forEach(k=>delete barcodeFlags[k]);
+  Object.keys(transferFlags).forEach(k=>delete transferFlags[k]);
+  extraItems.length=0; save(); updateStats(); renderList();
+  document.getElementById('resultSection').style.display='none';
+  lastFoundItem=null; showToast('초기화 완료');
+}
+
+// ───────────── EXPORT XLSX ─────────────
+function exportXLSX() {
+  const wb = XLSX.utils.book_new();
+
+  // ── 서식 1: 재물조사자 현황 (단순 안내용, 내용 없음)
+  const s1 = [
+    ['재물조사자 현황 (1)'],[''],
+    ['순','건물명-호실','건물명','호실','사용대학','사용부서','재물조사자(내선번호)','재물조사 동행자(내선번호)','조사방법','재물조사 희망시간','비고'],
+    ['1-1','4500-04030','대학본관','대외협력홍보실','기획처','대외협력홍보실','','','','',''],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1), '재물조사자 현황(1)');
+
+  // ── 서식 2: 바코드 재발행 목록
+  const s2rows = [
+    ['물품번호 바코드 재발행 목록(물품 바코드 단순 재발행) (2)'],[''],
+    ['순','건물명-호실','건물명','호실','물품관리 번호','물품명(모델명)','사용대학','사용부서','부서 담당자(내선번호)','바코드 수령 방법','비고']
+  ];
+  let bcIdx=1;
+  ITEMS.forEach(i=>{
+    if(!barcodeFlags[i.id]) return;
+    const bf = barcodeFlags[i.id];
+    s2rows.push([`2-${bcIdx++}`, i.location, i.building, i.room, i.id, i.name, '기획처', '대외협력홍보실', '', bf.rcv||'우편함 또는 직접 수령', bf.note||'']);
+  });
+  if(bcIdx===1) s2rows.push(['2-1','','','','','','','','','','']);
+  s2rows.push([''],['* 재물조사 물품목록을 참고하여 물품명/모델명/제조번호가 바코드 미 부착 물품과 일치하는 경우: 실물 ○, 재물조사목록○, 물품번호 바코드×'],['* 서식은 임의로 수정하지 마시기 바랍니다. (행높이는 조정 가능)']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s2rows), '바코드 재발행 목록(2)');
+
+  // ── 서식 3: 실물만 있을 경우
+  const s3rows = [
+    ['실물만 있을 경우(재물조사 목록 누락 및 바코드 미 부착) (3)'],[''],
+    ['순','건물명-호실','건물명','호실','물품명','모델명','규격','수량(개, 대, set)','사용대학','사용부서','부서 담당자(내선번호)','비고(상태)']
+  ];
+  extraItems.forEach((e,idx)=>{
+    s3rows.push([`3-${idx+1}`, e.location||e.building, e.building, e.room, e.name, e.model||'', e.spec||'', e.qty||1, '기획처', '대외협력홍보실', '', e.cond||e.note||'']);
+  });
+  if(extraItems.length===0) s3rows.push(['3-1','','','','','','','','','','','']);
+  s3rows.push([''],['* 재물조사 물품목록에 없는 바코드 미부착 물품이 있을 경우(실물○, 재물조사 목록X. 물품번호 바코드X)'],['* 모델명과 규격에는 물품에 대한 설명을 위해 최대한 상세히 기재하시기 바랍니다.'],['* 서식은 임의로 수정하지 마시기 바랍니다. (행높이는 조정 가능)']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s3rows), '실물만 있을 경우(3)');
+
+  // ── 서식 4: 물품관리이관 목록
+  const s4rows = [
+    ['물품관리이관 목록(타 부서에서 이동하여 현재 장소에서 사용중인 물품) (4)'],[''],
+    ['순','건물명-호실','건물명(현재 보관 장소)','호실(현재 보관 장소)','물품관리 번호','물품명','사용대학','사용부서','부서 담당자(내선번호)','비고']
+  ];
+  let trIdx=1;
+  ITEMS.forEach(i=>{
+    if(!transferFlags[i.id]) return;
+    const tf=transferFlags[i.id];
+    s4rows.push([`4-${trIdx++}`, i.location, i.building, i.room, i.id, i.name, '기획처', '대외협력홍보실', '', tf.note||'']);
+  });
+  if(trIdx===1) s4rows.push(['4-1','','','','','','','','','']);
+  s4rows.push([''],['* 재물조사 물품목록에 없는 물품이 있을 경우(실물○, 재물조사 목록X. 물품번호 바코드○)'],['* 동일 단과대학 및 동일 부서의 이동은 자체적으로 행정 처리: 웹종합정보시스템의 [행정]→[물품]→[물품관리이관 신고] 작성하여 전자결재로 관리'],['   - 타 부서에서 이동하여 사용중인 물품 현황만 제출/ 물품정보조회에서 사전 확인 후 제출 요망'],['   - 기 폐기된 물품 제외(재활용으로 부서에서만 관리 / 물품정보조회에서 빨간색으로 표시되어 있음.)'],['* 서식은 임의로 수정하지 마시기 바랍니다. (행높이는 조정 가능)']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s4rows), '물품관리이관 목록(4)');
+
+  // ── 서식 5: 미확인 물품 목록 (무 체크된 물품)
+  const s5rows = [
+    ['미확인 물품 목록(재무지원실과 함께 2차 공동 조사) (5)'],[''],
+    ['순','건물명-호실','건물명','호실','물품관리 번호','물품명','구입 일자','구입 단가(원)','사용대학','사용부서','사유','부서 담당자(내선번호)','비고']
+  ];
+  let abIdx=1;
+  ITEMS.forEach(i=>{
+    if(checks[i.id]!=='absent') return;
+    s5rows.push([`5-${abIdx++}`, i.location, i.building, i.room, i.id, i.name, '', '', '기획처', '대외협력홍보실', '소재 미확인', '', '']);
+  });
+  if(abIdx===1) s5rows.push(['5-1','','','','','','','','','','','','']);
+  s5rows.push([''],['* 재물조사 물품목록에는 있으나, 최종적으로 실제 물품 존재 유무가 확인되지 않는 경우 작성'],['* 분실, 망실 및 도난이 확정된 물품에 대하여 물품관리 규정 제18조(망실 보고 및 변상)와 대학 재산 도난 및 망실에 관한 변상 규정에 따라 사후 조치 예정'],['* 서식은 임의로 수정하지 마시기 바랍니다. (행높이는 조정 가능)']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s5rows), '미확인 물품 목록(5)');
+
+  const today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `작성_서식_2026년_대외협력홍보실_${today}.xlsx`);
+  showToast('📥 서식 엑셀 저장 완료!');
+}
+
+// ───────────── TOAST ─────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ───────────── INIT ─────────────
+updateStats();
+renderList();
+</script>
+</body>
+</html>
