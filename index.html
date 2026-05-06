@@ -92,6 +92,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .filter-bar::-webkit-scrollbar{display:none}
 .filter-chip{white-space:nowrap;padding:6px 11px;border-radius:20px;font-size:11px;font-weight:600;background:var(--surface);border:1px solid var(--border);color:var(--text-mid);cursor:pointer;transition:all .15s;flex-shrink:0}
 .filter-chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.filter-chip.f-present.active{background:var(--green-dim);border-color:var(--green);color:var(--green)}
 .filter-chip.f-absent.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
 .filter-chip.f-barcode.active{background:var(--yellow-dim);border-color:var(--yellow);color:var(--yellow)}
 .filter-chip.f-transfer.active{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
@@ -275,6 +276,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <div class="filter-bar" id="filterBar">
   <div class="filter-chip active" data-filter="all">전체</div>
   <div class="filter-chip" data-filter="unchecked">미확인</div>
+  <div class="filter-chip f-present" data-filter="present">유 ✓</div>
   <div class="filter-chip f-absent" data-filter="absent">무 ✗</div>
   <div class="filter-chip f-barcode" data-filter="barcode">🏷 바코드재발행</div>
   <div class="filter-chip f-transfer" data-filter="transfer">↔ 이관</div>
@@ -414,6 +416,7 @@ function getFiltered() {
   return ITEMS.filter(i => {
     if(currentFilter==='all') return true;
     if(currentFilter==='unchecked') return !checks[i.id];
+    if(currentFilter==='present') return checks[i.id]==='present';
     if(currentFilter==='absent') return checks[i.id]==='absent';
     if(currentFilter==='barcode') return !!barcodeFlags[i.id];
     if(currentFilter==='transfer') return !!transferFlags[i.id];
@@ -734,7 +737,7 @@ function showToast(msg){
 }
 
 // ───────────── SHEETS 연동 ─────────────
-let SCRIPT_URL = localStorage.getItem('script_url') || 'https://script.google.com/a/macros/jj.ac.kr/s/AKfycbx6GihlUuyZF24u2Um0rOOr9brJitNnBCC6ZMO1Llsmqb9hDLBjipwdVsBAAiQD11xJ/exec';
+let SCRIPT_URL = localStorage.getItem('script_url') || 'https://script.google.com/macros/s/AKfycbwkfm1Z1Qu6WS5-UL0LSxvLfpwzUGYdgLmNd6x3g5H6juHA5tjc-yi4M2bGMiZ1huHZ/exec';
 let isSyncing = false;
 let pendingQueue = JSON.parse(localStorage.getItem('pendingQueue') || '[]');
 
@@ -826,11 +829,10 @@ async function flushQueue() {
   while(pendingQueue.length > 0) {
     const item = pendingQueue[0];
     try {
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(item),
-        redirect: 'follow'
-      });
+      // GET 방식으로 파라미터 전송 (Apps Script CORS 우회)
+      const params = new URLSearchParams();
+      Object.entries(item).forEach(([k,v]) => params.set(k, typeof v === 'object' ? JSON.stringify(v) : v));
+      const res = await fetch(SCRIPT_URL + '?' + params.toString(), { redirect: 'follow' });
       const data = await res.json();
       if(data.error) throw new Error(data.error);
       pendingQueue.shift();
